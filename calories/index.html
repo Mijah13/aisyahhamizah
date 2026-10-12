@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SnapCal — Calorie Tracker</title>
+<meta name="description" content="Track calories by snapping a photo of your meal. Works offline, your data stays on your device.">
+<meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1a19" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SnapCal">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-palette="#2a78d6,#eb6834,#1baf7a">
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="appbar">
+  <div class="appbar-in">
+    <h1 class="brand"><span class="brand-mark" aria-hidden="true"></span> SnapCal</h1>
+    <button type="button" class="icon-btn" id="btn-settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 13a7.8 7.8 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7.8 7.8 0 0 0-1.7-1l-.3-2.5h-4l-.3 2.5a7.8 7.8 0 0 0-1.7 1l-2.3-1-2 3.4L6.6 11a7.8 7.8 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7.8 7.8 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7.8 7.8 0 0 0 1.7-1l2.3 1 2-3.4Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ───────────────────────── TODAY ───────────────────────── -->
+  <section class="screen" id="screen-today" aria-labelledby="today-h">
+    <div class="day-nav">
+      <button type="button" class="icon-btn" id="day-prev" aria-label="Previous day">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h2 id="today-h" class="day-label">Today</h2>
+      <button type="button" class="icon-btn" id="day-next" aria-label="Next day">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <div class="viz-root card ring-card">
+      <figure class="ring-figure">
+        <svg class="ring" viewBox="0 0 200 200" role="img" aria-labelledby="ring-title ring-desc">
+          <title id="ring-title">Calories today</title>
+          <desc id="ring-desc" class="ring-desc">No meals logged yet.</desc>
+          <circle class="ring-track" cx="100" cy="100" r="82"></circle>
+          <circle class="ring-value" cx="100" cy="100" r="82" transform="rotate(-90 100 100)"></circle>
+        </svg>
+        <div class="ring-center">
+          <strong class="hero-num" id="kcal-left">0</strong>
+          <span class="hero-sub" id="kcal-left-label">kcal left</span>
+          <span class="hero-foot" id="kcal-of">of 2000 goal</span>
+        </div>
+      </figure>
+
+      <p class="status-line" id="goal-status" hidden></p>
+
+      <div class="macros" id="macros" role="group" aria-label="Macronutrients">
+        <div class="macro" data-macro="p">
+          <div class="macro-head"><span class="swatch" aria-hidden="true"></span><span class="macro-name">Protein</span><span class="macro-val">0 g</span></div>
+          <div class="macro-bar"><span class="macro-fill"></span><span class="macro-target" aria-hidden="true"></span></div>
+        </div>
+        <div class="macro" data-macro="c">
+          <div class="macro-head"><span class="swatch" aria-hidden="true"></span><span class="macro-name">Carbs</span><span class="macro-val">0 g</span></div>
+          <div class="macro-bar"><span class="macro-fill"></span><span class="macro-target" aria-hidden="true"></span></div>
+        </div>
+        <div class="macro" data-macro="f">
+          <div class="macro-head"><span class="swatch" aria-hidden="true"></span><span class="macro-name">Fat</span><span class="macro-val">0 g</span></div>
+          <div class="macro-bar"><span class="macro-fill"></span><span class="macro-target" aria-hidden="true"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="meal-groups" class="meals"></div>
+
+    <button type="button" class="btn btn-quiet add-manual" id="btn-add-manual">
+      <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="currentColor"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z"/></svg>
+      Add food without a photo
+    </button>
+  </section>
+
+  <!-- ───────────────────────── HISTORY ───────────────────────── -->
+  <section class="screen" id="screen-history" aria-labelledby="history-h" hidden>
+    <h2 id="history-h">History</h2>
+
+    <div class="stat-row">
+      <div class="card stat">
+        <span class="stat-label">Daily average</span>
+        <strong class="stat-num" id="stat-avg">—</strong>
+        <span class="stat-foot" id="stat-avg-foot">last 7 days</span>
+      </div>
+      <div class="card stat">
+        <span class="stat-label">Days on target</span>
+        <strong class="stat-num" id="stat-ontarget">—</strong>
+        <span class="stat-foot">within goal</span>
+      </div>
+      <div class="card stat">
+        <span class="stat-label">Meals logged</span>
+        <strong class="stat-num" id="stat-meals">—</strong>
+        <span class="stat-foot">all time</span>
+      </div>
+    </div>
+
+    <div class="viz-root card">
+      <div class="chart-head">
+        <h3 class="chart-title">Calories per day</h3>
+        <div class="chart-tools">
+          <div class="seg" role="group" aria-label="Time range">
+            <button type="button" class="seg-btn is-on" data-range="7">7d</button>
+            <button type="button" class="seg-btn" data-range="14">14d</button>
+            <button type="button" class="seg-btn" data-range="30">30d</button>
+          </div>
+          <button type="button" class="link-btn" id="btn-table" aria-expanded="false">Table view</button>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart" id="chart-days" role="img" aria-labelledby="chart-days-desc"></div>
+        <p id="chart-days-desc" class="sr-only">Bar chart of daily calorie totals.</p>
+        <div class="tooltip" id="chart-tip" role="status" aria-live="polite" hidden></div>
+      </div>
+      <div id="table-days" hidden></div>
+    </div>
+  </section>
+
+  <!-- ───────────────────────── SETTINGS ───────────────────────── -->
+  <section class="screen" id="screen-settings" aria-labelledby="settings-h" hidden>
+    <h2 id="settings-h">Settings</h2>
+
+    <form class="card stack" id="form-goals" novalidate>
+      <h3>Daily targets</h3>
+      <label class="field">
+        <span>Calorie goal</span>
+        <input type="number" id="in-goal" inputmode="numeric" min="800" max="6000" step="10" required>
+        <small>kcal per day</small>
+      </label>
+      <fieldset class="split">
+        <legend>Macro split (% of calories)</legend>
+        <label class="field"><span>Protein</span><input type="number" id="in-sp" min="5" max="70" step="1"></label>
+        <label class="field"><span>Carbs</span><input type="number" id="in-sc" min="5" max="80" step="1"></label>
+        <label class="field"><span>Fat</span><input type="number" id="in-sf" min="5" max="70" step="1"></label>
+      </fieldset>
+      <p class="hint" id="split-hint"></p>
+      <details class="calc">
+        <summary>Help me pick a goal</summary>
+        <div class="stack">
+          <div class="split">
+            <label class="field"><span>Sex</span>
+              <select id="in-sex"><option value="f">Female</option><option value="m">Male</option></select>
+            </label>
+            <label class="field"><span>Age</span><input type="number" id="in-age" min="14" max="100" step="1"></label>
+          </div>
+          <div class="split">
+            <label class="field"><span>Height</span><input type="number" id="in-height" min="120" max="230" step="1"><small>cm</small></label>
+            <label class="field"><span>Weight</span><input type="number" id="in-weight" min="30" max="250" step="0.5"><small>kg</small></label>
+          </div>
+          <label class="field"><span>Activity</span>
+            <select id="in-activity">
+              <option value="1.2">Mostly sitting</option>
+              <option value="1.375">Light activity, 1–3 days</option>
+              <option value="1.55" selected>Moderate, 3–5 days</option>
+              <option value="1.725">Very active, 6–7 days</option>
+              <option value="1.9">Physical job or athlete</option>
+            </select>
+          </label>
+          <label class="field"><span>Aim</span>
+            <select id="in-aim">
+              <option value="-500">Lose about 0.5 kg / week</option>
+              <option value="-250">Lose slowly</option>
+              <option value="0" selected>Maintain</option>
+              <option value="250">Gain slowly</option>
+            </select>
+          </label>
+          <button type="button" class="btn btn-quiet" id="btn-calc">Estimate my goal</button>
+          <p class="hint" id="calc-out"></p>
+          <p class="fineprint">A rough estimate from the Mifflin–St Jeor formula. It is not medical advice — check with a professional before making big changes.</p>
+        </div>
+      </details>
+      <button type="submit" class="btn">Save targets</button>
+    </form>
+
+    <form class="card stack" id="form-ai" novalidate>
+      <h3>Photo recognition</h3>
+      <p class="hint">SnapCal can read your meal photo with Claude and estimate what is on the plate. Paste your own Anthropic API key — it is stored only in this browser and sent only to <code>api.anthropic.com</code>.</p>
+      <label class="field">
+        <span>Anthropic API key</span>
+        <input type="password" id="in-key" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">
+        <small>Get one at console.anthropic.com. Leave empty to log meals by hand.</small>
+      </label>
+      <label class="field">
+        <span>Model</span>
+        <select id="in-model">
+          <option value="claude-sonnet-5-5">Sonnet 5.5 — about 0.6¢ a scan (recommended)</option>
+          <option value="claude-opus-5-5">Opus 5.5 — about 1.3¢, best on crowded plates</option>
+          <option value="claude-haiku-5-5">Haiku 5.5 — about 0.03¢, cheapest and fastest</option>
+        </select>
+        <small>Rough cost per photo at today's rates. Three meals a day is
+        well under US$1 a month on Sonnet.</small>
+      </label>
+      <div class="row">
+        <button type="submit" class="btn">Save</button>
+        <button type="button" class="btn btn-quiet" id="btn-test-key">Test key</button>
+      </div>
+      <label class="check">
+        <input type="checkbox" id="in-autolog">
+        <span>
+          <strong>Log the meal straight after scanning</strong>
+          <small>Snap and it's done — no review step. The meal stays editable from Today.</small>
+        </span>
+      </label>
+      <p class="hint" id="key-status"></p>
+      <p class="fineprint">A browser-stored key can be read by anything that can run script on this page. Use a key with a low spend limit, and clear it when you are done.</p>
+    </form>
+
+    <div class="card stack">
+      <h3>Appearance</h3>
+      <div class="seg seg-wide" role="group" aria-label="Theme">
+        <button type="button" class="seg-btn" data-theme-opt="system">System</button>
+        <button type="button" class="seg-btn" data-theme-opt="light">Light</button>
+        <button type="button" class="seg-btn" data-theme-opt="dark">Dark</button>
+      </div>
+    </div>
+
+    <div class="card stack">
+      <h3>Your data</h3>
+      <p class="hint">Everything lives in this browser — meals in local storage, photos in an on-device database. Nothing is uploaded except the photo you choose to analyse.</p>
+      <div class="row wrap">
+        <button type="button" class="btn btn-quiet" id="btn-export-json">Export JSON</button>
+        <button type="button" class="btn btn-quiet" id="btn-export-csv">Export CSV</button>
+        <button type="button" class="btn btn-quiet" id="btn-import">Import JSON</button>
+        <button type="button" class="btn btn-danger" id="btn-wipe">Delete everything</button>
+      </div>
+      <p class="hint" id="data-status"></p>
+    </div>
+
+    <p class="fineprint center">SnapCal gives estimates for everyday awareness, not clinical accuracy. Calorie figures in the built-in food list are rounded reference values, and a photo estimate is a best guess from what is visible.</p>
+  </section>
+</main>
+
+<!-- ───────────────────────── BOTTOM BAR ───────────────────────── -->
+<nav class="tabbar" aria-label="Main">
+  <button type="button" class="tab is-on" data-tab="today" aria-current="page">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11h16M7 4v3m10-3v3M5 7h14a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>Today</span>
+  </button>
+  <button type="button" class="snap-btn" id="btn-snap">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16.2a3.7 3.7 0 1 0 0-7.4 3.7 3.7 0 0 0 0 7.4Z" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M3.5 8.5A1.5 1.5 0 0 1 5 7h2.3l1.2-2h7l1.2 2H19a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5v-9Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>
+    <span>Snap</span>
+  </button>
+  <button type="button" class="tab" data-tab="history">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V11m7 8V5m7 14v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <span>History</span>
+  </button>
+</nav>
+
+<!-- ───────────────────────── CAPTURE SHEET ───────────────────────── -->
+<dialog class="sheet sheet-full" id="dlg-capture" aria-labelledby="capture-h">
+  <form method="dialog" class="sheet-close-form"><button class="icon-btn sheet-x" value="cancel" aria-label="Close">✕</button></form>
+  <h2 id="capture-h" class="sr-only">Take a photo of your meal</h2>
+  <div class="cam">
+    <video id="cam-video" playsinline muted autoplay></video>
+    <div class="cam-frame" aria-hidden="true"></div>
+    <p class="cam-msg" id="cam-msg">Starting camera…</p>
+  </div>
+  <div class="cam-bar">
+    <label class="btn btn-quiet">
+      Choose photo
+      <input type="file" id="in-file" accept="image/*" hidden>
+    </label>
+    <button type="button" class="shutter" id="btn-shutter" aria-label="Take photo"><span></span></button>
+    <button type="button" class="btn btn-quiet" id="btn-flip">Flip</button>
+  </div>
+</dialog>
+
+<!-- ───────────────────────── REVIEW / CONFIRM SHEET ───────────────────────── -->
+<dialog class="sheet" id="dlg-review" aria-labelledby="review-h">
+  <div class="sheet-head">
+    <h2 id="review-h">New meal</h2>
+    <form method="dialog"><button class="icon-btn" value="cancel" aria-label="Close">✕</button></form>
+  </div>
+
+  <div class="sheet-body stack">
+    <img id="review-photo" class="review-photo" alt="The meal you photographed" hidden>
+
+    <div class="seg seg-wide" role="group" aria-label="Meal">
+      <button type="button" class="seg-btn" data-meal="breakfast">Breakfast</button>
+      <button type="button" class="seg-btn" data-meal="lunch">Lunch</button>
+      <button type="button" class="seg-btn" data-meal="dinner">Dinner</button>
+      <button type="button" class="seg-btn" data-meal="snack">Snack</button>
+    </div>
+
+    <p class="scan-note" id="scan-note" role="status" hidden>
+      <span class="spin" aria-hidden="true"></span> Reading your plate…
+    </p>
+
+    <div class="no-key-box" id="no-key-box" hidden>
+      <p class="hint"><strong>Scanning is not set up yet.</strong> With an Anthropic API key,
+      a photo is read automatically the moment you take it. Until then, add the food by name below.</p>
+      <button type="button" class="btn" id="btn-setup-key">Set up scanning</button>
+    </div>
+
+    <details class="ai-box" id="ai-box">
+      <summary>Rescan with a hint</summary>
+      <div class="stack">
+        <label class="field">
+          <span>Anything the photo doesn't show?</span>
+          <input type="text" id="in-hint" placeholder="e.g. cooked with 2 tbsp oil, large portion">
+        </label>
+        <button type="button" class="btn btn-quiet" id="btn-analyze">Scan this photo</button>
+      </div>
+    </details>
+    <p class="hint" id="ai-status"></p>
+
+    <div class="items" id="review-items"></div>
+
+    <div class="add-food">
+      <label class="field">
+        <span>Add food</span>
+        <input type="search" id="in-search" placeholder="Search 95 foods — rice, roti canai, salmon…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="search-results">
+      </label>
+      <ul class="results" id="search-results" role="listbox" hidden></ul>
+      <button type="button" class="link-btn" id="btn-custom">Enter calories manually</button>
+    </div>
+
+  </div>
+
+  <div class="sheet-foot">
+    <div class="totals" id="review-totals" aria-live="polite"></div>
+    <div class="row">
+      <button type="button" class="btn btn-quiet" id="btn-cancel-meal">Discard</button>
+      <button type="button" class="btn" id="btn-save-meal">Save meal</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<canvas id="work-canvas" hidden></canvas>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>
