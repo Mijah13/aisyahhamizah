@@ -14,16 +14,20 @@ standalone app and opens offline.
 1. **Snap** — the big camera button opens a live viewfinder. No camera, or
    permission denied? *Choose photo* picks one from the gallery, and
    *Add food without a photo* skips the picture entirely.
-2. **Analyse** — with an API key saved, *Analyse photo with Claude* sends the
-   photo (resized to 1120px) and returns one row per food with an estimated
+2. **It scans by itself** — the moment a photo exists, it goes (resized to
+   1120px) to Claude, which returns one row per food with an estimated
    portion, calories and macros, each tagged high / medium / low confidence.
-   The free-text box next to it carries what the photo can't show
-   ("cooked with 2 tbsp oil", "large portion").
+   No button to press. *Rescan with a hint* re-reads the same photo with
+   what the picture can't show ("cooked with 2 tbsp oil", "large portion").
 3. **Correct** — every field stays editable. Change the gram amount and the
    calories and macros rescale with it. Add anything the photo missed from the
    built-in list of 95 foods, or type your own numbers.
 4. **Save** — the meal lands under breakfast / lunch / dinner / snack with its
    photo thumbnail. Tap a meal later to edit or delete it.
+
+Turning on **Log the meal straight after scanning** (Settings → Photo
+recognition) drops step 3 and 4: snap the photo and the calories are in the
+day's total, still editable from Today if the estimate was off.
 
 ## Without an API key
 

@@ -22,6 +22,7 @@ const DEFAULTS = {
   model: 'claude-sonnet-5-5',
   theme: 'system',
   lastMeal: null,
+  autoLog: false,     // save straight after a scan, skipping the review step
 };
 
 /* ─────────────────────────── state ─────────────────────────── */
@@ -507,7 +508,9 @@ async function beginDraft(fullBlob, smallBlob) {
   if ($('#dlg-capture').open) $('#dlg-capture').close();
   stopStream();
   openReview();
-  if (!fullBlob) $('#in-search').focus();
+  if (!fullBlob) { $('#in-search').focus(); return; }
+  // A photo is the whole instruction — read it without waiting for another tap.
+  if (settings.apiKey) analysePhoto();
 }
 
 function openReview() {
@@ -526,8 +529,10 @@ function openReview() {
 
   $('#review-h').textContent = draft.editing ? 'Edit meal' : 'New meal';
   $('#ai-box').hidden = !draft.fullBlob;
-  $('#ai-status').textContent = settings.apiKey ? '' : 'Add an API key in Settings to let Claude read the photo — or add food by name below.';
+  $('#no-key-box').hidden = !draft.fullBlob || !!settings.apiKey;
+  $('#ai-status').textContent = '';
   $('#btn-analyze').disabled = !settings.apiKey;
+  $('#btn-analyze').textContent = draft.items.length ? 'Scan the photo again' : 'Scan this photo';
   $('#in-hint').value = draft.hint || '';
   $('#in-search').value = '';
   $('#search-results').hidden = true;
@@ -577,7 +582,7 @@ function renderDraftTotals() {
     ? `<strong>${nf(t.kcal)}</strong> kcal
        <span class="t-macros">${nf(t.p)}p · ${nf(t.c)}c · ${nf(t.f)}f · day total ${nf(after)} / ${nf(settings.goal)}</span>`
     : `<span>Nothing added yet — analyse the photo or search for the food.</span>`;
-  $('#btn-save-meal').disabled = !draft.items.length;
+  $('#btn-save-meal').disabled = !draft.items.length || !!draft.scanning;
 }
 
 function updateItemField(uidStr, field, raw) {
@@ -661,6 +666,8 @@ async function analysePhoto() {
   btn.innerHTML = '<span class="spin" aria-hidden="true"></span> Reading your photo…';
   status.textContent = '';
   draft.hint = $('#in-hint').value.trim();
+  draft.scanning = true;
+  showScanning(true);
 
   try {
     const data = await blobToBase64(draft.fullBlob);
@@ -727,6 +734,14 @@ async function analysePhoto() {
         ? `${out.note} Check the numbers before saving.`
         : 'Estimates only — tweak anything that looks off before saving.';
       renderDraftItems();
+
+      // "Snap and it's logged": save without the review step when asked to.
+      if (settings.autoLog && !draft.editing) {
+        draft.scanning = false;
+        showScanning(false);
+        await saveDraft({ auto: true });
+        return;
+      }
     }
   } catch (err) {
     const m = String(err && err.message || err);
@@ -734,14 +749,24 @@ async function analysePhoto() {
       ? 'Could not reach api.anthropic.com. Check your connection, then try again.'
       : `Analysis failed: ${m}`;
   } finally {
+    if (draft) { draft.scanning = false; }
+    showScanning(false);
     btn.disabled = !settings.apiKey;
-    btn.textContent = 'Analyse photo with Claude';
+    btn.textContent = draft && draft.items.length ? 'Scan the photo again' : 'Scan this photo';
   }
+}
+
+/** Show the review sheet as busy while the photo is being read. */
+function showScanning(on) {
+  const sheet = $('#dlg-review');
+  sheet.classList.toggle('is-scanning', on);
+  $('#scan-note').hidden = !on;
+  $('#btn-save-meal').disabled = on || !(draft && draft.items.length);
 }
 
 /* ─────────────────────────── save / edit / delete ─────────────────────────── */
 
-async function saveDraft() {
+async function saveDraft({ auto = false } = {}) {
   if (!draft.items.length) return;
 
   let photoId = draft.photoId;
@@ -779,7 +804,9 @@ async function saveDraft() {
   viewDate = entry.date;
   renderToday();
   showScreen('today');
-  toast(`${draft?.editing ? 'Updated' : 'Logged'} ${nf(total)} kcal`);
+  toast(auto
+    ? `Logged ${nf(total)} kcal — tap the meal to adjust`
+    : `${draft?.editing ? 'Updated' : 'Logged'} ${nf(total)} kcal`);
   draft = null;
 }
 
@@ -826,6 +853,7 @@ function fillSettings() {
   $('#in-sf').value = settings.split.f;
   $('#in-key').value = settings.apiKey;
   $('#in-model').value = settings.model;
+  $('#in-autolog').checked = !!settings.autoLog;
   $$('[data-theme-opt]').forEach(b => b.classList.toggle('is-on', b.dataset.themeOpt === settings.theme));
   updateSplitHint();
   $('#key-status').textContent = settings.apiKey ? 'A key is saved in this browser.' : 'No key saved — meals are added by hand.';
@@ -1096,6 +1124,18 @@ function wire() {
     toast('Saved');
   });
   $('#btn-test-key').addEventListener('click', testKey);
+  $('#in-autolog').addEventListener('change', e => {
+    settings.autoLog = e.target.checked;
+    saveSettings();
+    toast(settings.autoLog ? 'Scans will be logged straight away' : 'Scans will wait for your review');
+  });
+  $('#btn-setup-key').addEventListener('click', () => {
+    closeReview();
+    draft = null;
+    showScreen('settings');
+    $('#in-key').focus();
+    $('#in-key').scrollIntoView({ block: 'center', behavior: 'smooth' });
+  });
 
   $$('[data-theme-opt]').forEach(b => b.addEventListener('click', () => {
     settings.theme = b.dataset.themeOpt;

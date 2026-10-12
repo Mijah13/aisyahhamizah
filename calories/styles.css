@@ -86,6 +86,10 @@
 
 * { box-sizing: border-box; }
 
+/* A display rule on an element otherwise beats the UA's [hidden] — this keeps
+   `el.hidden = true` authoritative everywhere in the app. */
+[hidden] { display: none !important; }
+
 html, body { overflow-x: hidden; }
 
 body {
@@ -145,7 +149,6 @@ p { margin: 0; }
 /* ── Layout ── */
 main { max-width: 680px; margin: 0 auto; padding: 16px var(--gutter) calc(var(--tabbar-h) + 28px + env(safe-area-inset-bottom)); }
 .screen { display: grid; gap: 16px; }
-.screen[hidden] { display: none; }   /* display:grid would otherwise beat [hidden] */
 
 .card {
   background: var(--surface-1);
@@ -427,7 +430,25 @@ dialog[open].sheet-full { display: grid; grid-template-rows: 1fr auto; }
   width: 100%; max-height: 240px; object-fit: cover; border-radius: var(--radius);
   display: block; background: var(--surface-2);
 }
-.ai-box { display: grid; gap: 10px; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+.ai-box { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+.ai-box summary { cursor: pointer; font-size: .8125rem; font-weight: 550; color: var(--accent); }
+.ai-box > .stack { padding-top: 12px; }
+.no-key-box { display: grid; gap: 12px; background: var(--accent-soft); border-radius: var(--radius); padding: 14px; }
+.no-key-box .hint { color: var(--text-primary); }
+
+.scan-note {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; font-size: .9375rem; font-weight: 550; color: var(--text-secondary);
+}
+.sheet.is-scanning .review-photo { opacity: .55; }
+.sheet.is-scanning .add-food, .sheet.is-scanning .ai-box { opacity: .5; pointer-events: none; }
+
+.check { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.check input { width: 20px; height: 20px; min-height: 0; flex: none; margin-top: 2px; accent-color: var(--accent); }
+.check span { display: grid; gap: 2px; }
+.check strong { font-size: .875rem; font-weight: 550; }
+.check small { font-size: .75rem; color: var(--text-muted); }
 .items { display: grid; gap: 10px; }
 .item {
   background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px;

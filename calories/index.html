@@ -201,6 +201,13 @@
         <button type="submit" class="btn">Save</button>
         <button type="button" class="btn btn-quiet" id="btn-test-key">Test key</button>
       </div>
+      <label class="check">
+        <input type="checkbox" id="in-autolog">
+        <span>
+          <strong>Log the meal straight after scanning</strong>
+          <small>Snap and it's done — no review step. The meal stays editable from Today.</small>
+        </span>
+      </label>
       <p class="hint" id="key-status"></p>
       <p class="fineprint">A browser-stored key can be read by anything that can run script on this page. Use a key with a low spend limit, and clear it when you are done.</p>
     </form>
@@ -282,14 +289,27 @@
       <button type="button" class="seg-btn" data-meal="snack">Snack</button>
     </div>
 
-    <div class="ai-box" id="ai-box">
-      <label class="field">
-        <span>Anything the photo doesn't show?</span>
-        <input type="text" id="in-hint" placeholder="e.g. cooked with 2 tbsp oil, large portion">
-      </label>
-      <button type="button" class="btn" id="btn-analyze">Analyse photo with Claude</button>
-      <p class="hint" id="ai-status"></p>
+    <p class="scan-note" id="scan-note" role="status" hidden>
+      <span class="spin" aria-hidden="true"></span> Reading your plate…
+    </p>
+
+    <div class="no-key-box" id="no-key-box" hidden>
+      <p class="hint"><strong>Scanning is not set up yet.</strong> With an Anthropic API key,
+      a photo is read automatically the moment you take it. Until then, add the food by name below.</p>
+      <button type="button" class="btn" id="btn-setup-key">Set up scanning</button>
     </div>
+
+    <details class="ai-box" id="ai-box">
+      <summary>Rescan with a hint</summary>
+      <div class="stack">
+        <label class="field">
+          <span>Anything the photo doesn't show?</span>
+          <input type="text" id="in-hint" placeholder="e.g. cooked with 2 tbsp oil, large portion">
+        </label>
+        <button type="button" class="btn btn-quiet" id="btn-analyze">Scan this photo</button>
+      </div>
+    </details>
+    <p class="hint" id="ai-status"></p>
 
     <div class="items" id="review-items"></div>
 
